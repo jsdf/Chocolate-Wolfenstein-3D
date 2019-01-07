@@ -107,4 +107,6 @@ void inline VL_LatchToScreen (SDL_Surface *source, int x, int y)
         scaleFactor*x,scaleFactor*y);
 }
 
+void Em_BlitToScreen();
+
 #endif

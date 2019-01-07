@@ -4,6 +4,10 @@
 #pragma hdrstop
 
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /*
 =============================================================================
 
@@ -88,7 +92,7 @@ void PollControls (void);
 int StopMusic (void);
 void StartMusic (void);
 void ContinueMusic (int offs);
-void PlayLoop (void);
+void PlayLoop (int);
 
 /*
 =============================================================================
@@ -1252,9 +1256,10 @@ think:
 int32_t funnyticount;
 
 
-void PlayLoop (void)
+void PlayLoop (int jumpto)
 {
-
+switch (jumpto) { // re-entry state machine
+case 0:
     playstate = ex_stillplaying;
     lasttimecount = GetTimeCount();
     frameon = 0;
@@ -1270,8 +1275,11 @@ void PlayLoop (void)
     if (demoplayback)
         IN_StartAck ();
 
+case 1:
+#ifndef __EMSCRIPTEN__
     do
     {
+#endif
         PollControls ();
 
 //
@@ -1330,9 +1338,18 @@ void PlayLoop (void)
                 playstate = ex_abort;
             }
         }
+    
+#ifndef __EMSCRIPTEN__
+    } while (!playstate && !startgame);
+#else
+    if (!playstate && !startgame) {
+        emscripten_async_call((void (*)(void *))PlayLoop, (void*)(1) /* jumpto loop */, -1);
+
+        return;
     }
-    while (!playstate && !startgame);
+#endif
 
     if (playstate != ex_died)
         FinishPaletteShifts ();
+} // end jumpto switch
 }

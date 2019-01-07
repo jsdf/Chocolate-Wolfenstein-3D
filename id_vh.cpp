@@ -1,4 +1,5 @@
 #include "wl_def.h"
+#include "id_vl.h"
 
 
 pictabletype    *pictable;
@@ -115,7 +116,13 @@ void VW_MeasurePropString (const char *string, word *width, word *height)
 
 void VH_UpdateScreen()
 {
+    printf("updating screen\n");
+#ifdef __EMSCRIPTEN__
+    Em_BlitToScreen();
+#else
     SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif
+
     SDL_Flip(screen);
 }
 
@@ -365,7 +372,12 @@ boolean FizzleFade (SDL_Surface *source, int x1, int y1,
         {
             VL_UnlockSurface(source_copy);
             SDL_BlitSurface(screen_copy, NULL, screenBuffer, NULL);
+#ifdef __EMSCRIPTEN__
+            Em_BlitToScreen();
+#else
             SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif
+
             SDL_Flip(screen);
             SDL_FreeSurface(source_copy);
             SDL_FreeSurface(screen_copy);
@@ -432,7 +444,12 @@ boolean FizzleFade (SDL_Surface *source, int x1, int y1,
 
         VL_UnlockSurface(screen_copy);
         SDL_BlitSurface(screen_copy, NULL, screenBuffer, NULL);
+#ifdef __EMSCRIPTEN__
+        Em_BlitToScreen();
+#else
         SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif
+
         SDL_Flip(screen);
 
         frame++;
@@ -443,7 +460,12 @@ finished:
     VL_UnlockSurface(source_copy);
     VL_UnlockSurface(screen_copy);
     SDL_BlitSurface(screen_copy, NULL, screenBuffer, NULL);
+#ifdef __EMSCRIPTEN__
+    Em_BlitToScreen();
+#else
     SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif
+
     SDL_Flip(screen);
     SDL_FreeSurface(source_copy);
     SDL_FreeSurface(screen_copy);

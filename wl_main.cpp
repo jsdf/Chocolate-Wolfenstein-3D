@@ -9,6 +9,9 @@
 #include "wl_def.h"
 #pragma hdrstop
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 
 
@@ -810,7 +813,9 @@ void SetupWalls (void)
 
 void SignonScreen (void)                        // VGA version
 {
+    printf("VL_SetVGAPlaneMode\n");
     VL_SetVGAPlaneMode ();
+    printf("end VL_SetVGAPlaneMode\n");
 
     VL_MungePic (signon,320,200);
     VL_MemToScreen (signon,320,200,0,0);
@@ -845,6 +850,7 @@ void FinishSignon (void)
     #endif
 
     VH_UpdateScreen();
+
 
     if (!param_nowait)
         IN_Ack ();
@@ -1205,8 +1211,11 @@ static void InitGame()
             printf("The joystick index must be between -1 and %i!\n", numJoysticks - 1);
         exit(1);
     }
-
+    printf("SignonScreen\n");
     SignonScreen ();
+    printf("end SignonScreen\n");
+
+
 
 #if defined _WIN32
     if(!fullscreen)
@@ -1224,12 +1233,17 @@ static void InitGame()
     }
 #endif
 
-    VH_Startup ();
-    IN_Startup ();
-    PM_Startup ();
-    SD_Startup ();
-    CA_Startup ();
-    US_Startup ();
+    printf("starting systems\n");
+
+    printf("VH_Startup\n");VH_Startup ();
+
+    printf("IN_Startup\n");IN_Startup ();
+    printf("PM_Startup\n");PM_Startup ();
+    printf("SD_Startup\n");SD_Startup ();
+    printf("CA_Startup\n");CA_Startup ();
+    printf("US_Startup\n");US_Startup ();
+
+    printf("done starting systems\n");
 
     // TODO: Will any memory checking be needed someday??
 #ifdef NOTYET
@@ -1276,7 +1290,7 @@ static void InitGame()
 // draw intro screen stuff
 //
     IntroScreen ();
-
+VH_UpdateScreen();
 
 //
 // load in and lock down some basic chunks
@@ -1485,7 +1499,6 @@ void Quit (const char *errorStr, ...)
 =====================
 */
 
-
 static void DemoLoop()
 {
     int LastDemo = 0;
@@ -1506,7 +1519,8 @@ static void DemoLoop()
         gamestate.episode = 0;
         gamestate.mapon = param_tedlevel;
 #endif
-        GameLoop();
+        printf("before GameLoop\n");
+        GameLoop(0);
         Quit (NULL);
     }
 
@@ -1614,7 +1628,7 @@ static void DemoLoop()
             if(screenHeight % 200 != 0)
                 VL_ClearScreen(0);
             StartCPMusic(INTROSONG);
-        }
+        }// end demo loop
 
         VW_FadeOut ();
 
@@ -1629,7 +1643,7 @@ static void DemoLoop()
 
         if (startgame || loadedgame)
         {
-            GameLoop ();
+            GameLoop (0);
             if(!param_nowait)
             {
                 VW_FadeOut();
@@ -1916,12 +1930,18 @@ void CheckParameters(int argc, char *argv[])
 int main (int argc, char *argv[])
 {
 
+    printf("main started\n");
+
     CheckParameters(argc, argv);
 
     CheckForEpisodes();
 
+    printf("InitGame\n");
     InitGame();
 
+    // printf("after InitGame\n"); exit(123);
+
+    printf("about to start demoloop\n");
     DemoLoop();
 
     Quit("Demo loop exited???");

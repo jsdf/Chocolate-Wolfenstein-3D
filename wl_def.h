@@ -928,7 +928,7 @@ extern  SDL_Surface     *latchpics[NUMLATCHPICS];
 extern  char            demoname[13];
 
 void    SetupGameLevel (void);
-void    GameLoop (void);
+void    GameLoop (int);
 void    DrawPlayBorder (void);
 void    DrawStatusBorder (byte color);
 void    DrawPlayScreen (void);
@@ -1013,7 +1013,7 @@ extern  int         buttonjoy[32];
 
 void    InitActorList (void);
 void    GetNewActor (void);
-void    PlayLoop (void);
+void    PlayLoop (int);
 
 void    CenterWindow(word w,word h);
 
@@ -1385,12 +1385,5 @@ static inline longword READLONGWORD(byte *&ptr)
     return val;
 }
 
-
-//By Fabien: This prevents SDL from drawing the surface, openGL does it instead.
-#include "crt.h"
-//Fab's CRT Hack
-#define SDL_Flip(x) CRT_DAC()
-
-
-
 #endif
+

@@ -558,11 +558,13 @@ void IN_Ack (void)
 {
     IN_StartAck ();
 
-    do
-    {
-        IN_WaitAndProcessEvents();
-    }
-    while(!IN_CheckAck ());
+    // TODO(jsdf): some kind of UI event loop here
+
+    // do
+    // {
+    //     IN_WaitAndProcessEvents();
+    // }
+    // while(!IN_CheckAck ());
 }
 
 
@@ -577,6 +579,8 @@ void IN_Ack (void)
 boolean IN_UserInput(longword delay)
 {
     longword    lasttime;
+    return(false);
+
 
     lasttime = GetTimeCount();
     IN_StartAck ();

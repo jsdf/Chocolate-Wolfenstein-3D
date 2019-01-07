@@ -1,6 +1,7 @@
 // WL_DRAW.C
 
 #include "wl_def.h"
+#include "id_vl.h"
 #pragma hdrstop
 
 
@@ -1581,7 +1582,11 @@ void    ThreeDRefresh (void)
         }
 #endif
         
+#ifdef __EMSCRIPTEN__
+        Em_BlitToScreen();
+#else
         SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif  
         SDL_Flip(screen);
     }
 

@@ -17,6 +17,7 @@ SDL_CONFIG  ?= sdl-config
 CFLAGS_SDL  ?= $(shell $(SDL_CONFIG) --cflags)
 LDFLAGS_SDL ?= $(shell $(SDL_CONFIG) --libs)
 
+echo "SDL_CONFIG=$(SDL_CONFIG)"
 
 CFLAGS += $(CFLAGS_SDL)
 
@@ -26,6 +27,7 @@ CFLAGS += -Wpointer-arith
 CFLAGS += -Wreturn-type
 CFLAGS += -Wwrite-strings
 CFLAGS += -Wcast-align
+CFLAGS += $(EMFLAGS)
 
 CCFLAGS += $(CFLAGS)
 CCFLAGS += -std=gnu99
@@ -37,11 +39,12 @@ CXXFLAGS += $(CFLAGS)
 
 LDFLAGS += $(LDFLAGS_SDL)
 ifeq ($(UNAME), Darwin)
-	LDFLAGS += -lSDL_mixer -framework OpenGL
+	LDFLAGS += -lSDL_mixer
 endif
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -lSDL_mixer -lGL
+	LDFLAGS += -lSDL_mixer
 endif
+LDFLAGS += -lSDL_mixer
 
 SRCS :=
 SRCS += fmopl.cpp
@@ -65,17 +68,21 @@ SRCS += wl_menu.cpp
 SRCS += wl_play.cpp
 SRCS += wl_state.cpp
 SRCS += wl_text.cpp
-SRCS += crt.cpp
 
 DEPS = $(filter %.d, $(SRCS:.c=.d) $(SRCS:.cpp=.d))
 OBJS = $(filter %.o, $(SRCS:.c=.o) $(SRCS:.cpp=.o))
 
+
 .SUFFIXES:
 .SUFFIXES: .c .cpp .d .o
 
-Q ?= @
+Q ?= ""
 
 all: $(BINARY)
+	@echo "EMFLAGS=$(EMFLAGS)"
+	@echo "CFLAGS=$(CFLAGS)"
+	@echo "LDFLAGS=$(LDFLAGS)"
+	@echo "CXXFLAGS=$(CXXFLAGS)"
 
 ifndef NO_DEPS
 depend: $(DEPS)

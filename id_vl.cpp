@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include "wl_def.h"
-#include "crt.h"
 #pragma hdrstop
 
 // Uncomment the following line, if you get destination out of bounds
@@ -89,6 +88,12 @@ void    VL_SetVGAPlaneMode (void)
 #else
     SDL_WM_SetCaption("Wolfenstein 3D", NULL);
 #endif
+    // authentic resolution
+    screenWidth=320;
+    screenHeight=200;
+    #ifdef __EMSCRIPTEN__
+    screenBits=32; // browser canvas is always 32bpp
+    #endif
 
     if(screenBits == -1)
     {
@@ -96,16 +101,22 @@ void    VL_SetVGAPlaneMode (void)
         screenBits = vidInfo->vfmt->BitsPerPixel;
     }
 
+
     //Fab's CRT Hack
     //Adjust height so the screen is 4:3 aspect ratio
-    screenHeight=screenWidth * 3.0/4.0;
+    // screenHeight=screenWidth * 3.0/4.0;
+    
+    // screen = SDL_SetVideoMode(screenWidth, screenHeight, screenBits,
+    //       (usedoublebuffering ? SDL_HWSURFACE | SDL_DOUBLEBUF : 0)
+    //     | (screenBits == 8 ? SDL_HWPALETTE : 0)
+    //     | (fullscreen ? SDL_FULLSCREEN : 0) | SDL_OPENGL | SDL_OPENGLBLIT);
     
     screen = SDL_SetVideoMode(screenWidth, screenHeight, screenBits,
           (usedoublebuffering ? SDL_HWSURFACE | SDL_DOUBLEBUF : 0)
         | (screenBits == 8 ? SDL_HWPALETTE : 0)
-        | (fullscreen ? SDL_FULLSCREEN : 0) | SDL_OPENGL | SDL_OPENGLBLIT);
-    
-    
+        | (fullscreen ? SDL_FULLSCREEN : 0));
+    printf("set %ix%ix%i video mode\n", screenWidth, screenHeight, screenBits);
+
     if(!screen)
     {
         printf("Unable to set %ix%ix%i video mode: %s\n", screenWidth, screenHeight, screenBits, SDL_GetError());
@@ -119,11 +130,13 @@ void    VL_SetVGAPlaneMode (void)
     memcpy(curpal, gamepal, sizeof(SDL_Color) * 256);
 
     //Fab's CRT Hack
-    CRT_Init(screenWidth);
+    // CRT_Init(screenWidth);
     
     //Fab's CRT Hack
     screenWidth=320;
     screenHeight=200;
+    
+    printf("screenWidth=%d,screenHeight=%d\n", screenWidth,screenHeight);
     
     screenBuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, screenWidth,
         screenHeight, 8, 0, 0, 0, 0);
@@ -223,7 +236,11 @@ void VL_SetColor    (int color, int red, int green, int blue)
     else
     {
         SDL_SetPalette(curSurface, SDL_LOGPAL, &col, color, 1);
+#ifdef __EMSCRIPTEN__
+        Em_BlitToScreen();
+#else
         SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif
         SDL_Flip(screen);
     }
 }
@@ -267,9 +284,28 @@ void VL_SetPalette (SDL_Color *palette, bool forceupdate)
         SDL_SetPalette(curSurface, SDL_LOGPAL, palette, 0, 256);
         if(forceupdate)
         {
+#ifdef __EMSCRIPTEN__
+            Em_BlitToScreen();
+#else
             SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+#endif
             SDL_Flip(screen);
         }
+    }
+}
+
+void Em_BlitToScreen() {
+    return;
+    assert(screen->format->BitsPerPixel == 32);
+    //Convert palette based framebuffer to RGB for OpenGL
+    uint32_t* pixelPointer = (uint32_t*)screen->pixels;
+    for (int i=0; i < 320*200; i++) {
+        unsigned char paletteIndex;
+        paletteIndex = ((byte*)screenBuffer->pixels)[i];
+        *pixelPointer++ = curpal[paletteIndex].r;
+        *pixelPointer++ = curpal[paletteIndex].g;
+        *pixelPointer++ = curpal[paletteIndex].b;
+        *pixelPointer++ = (uint8_t)255; // alpha
     }
 }
 

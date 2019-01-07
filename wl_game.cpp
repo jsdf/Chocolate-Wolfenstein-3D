@@ -11,6 +11,9 @@
 #include <SDL/SDL_mixer.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #pragma hdrstop
 
@@ -55,7 +58,8 @@ int ElevatorBackTo[]={1,1,7,3,5,3};
 void SetupGameLevel (void);
 void DrawPlayScreen (void);
 void LoadLatchMem (void);
-void GameLoop (void);
+void GameLoop (int);
+
 
 /*
 =============================================================================
@@ -1112,7 +1116,7 @@ void RecordDemo (void)
     if(usedoublebuffering) VH_UpdateScreen();
     fizzlein = true;
 
-    PlayLoop ();
+    PlayLoop (0);
 
     demoplayback = false;
 
@@ -1143,6 +1147,7 @@ void RecordDemo (void) {return;}
 
 void PlayDemo (int demonumber)
 {
+    printf("play demo\n");
     int length;
 #ifdef DEMOSEXTERN
 // debug: load chunk
@@ -1180,7 +1185,7 @@ void PlayDemo (int demonumber)
     SetupGameLevel ();
     StartMusic ();
 
-    PlayLoop ();
+    PlayLoop (0);
 
 #ifdef DEMOSEXTERN
     UNCACHEGRCHUNK(dems[demonumber]);
@@ -1343,6 +1348,15 @@ void Died (void)
 
 //==========================================================================
 
+// void my_async_call (void*, int);
+
+// EM_JS(void, my_async_call, (void* fn, int jumpto), {
+//     function wrapper() {
+//         getFuncWrapper(fn, 'vi')(jumpto);
+//     }
+//     requestAnimationFrame(wrapper);
+// });
+
 /*
 ===================
 =
@@ -1350,22 +1364,28 @@ void Died (void)
 =
 ===================
 */
-
-void GameLoop (void)
+boolean died = false;
+void GameLoop (int jumpto)
 {
-    boolean died;
-#ifdef MYPROFILE
-    clock_t start,end;
-#endif
+    assert(jumpto >= 0 && jumpto <= 1);
+// #ifdef MYPROFILE
+//     clock_t start,end;
+// #endif
 
+switch (jumpto) { // re-entry state machine
+case 0:
 restartgame:
     ClearMemory ();
     SETFONTCOLOR(0,15);
     VW_FadeOut();
     DrawPlayScreen ();
     died = false;
+
+case 1:
+#ifndef __EMSCRIPTEN__
     do
     {
+#endif
         if (!loadedgame)
             gamestate.score = gamestate.oldscore;
         if(!died || viewsize != 21) DrawScore();
@@ -1374,13 +1394,13 @@ restartgame:
         if (!loadedgame)
             SetupGameLevel ();
 
-#ifdef SPEAR
-        if (gamestate.mapon == 20)      // give them the key allways
-        {
-            gamestate.keys |= 1;
-            DrawKeys ();
-        }
-#endif
+// #ifdef SPEAR
+//         if (gamestate.mapon == 20)      // give them the key allways
+//         {
+//             gamestate.keys |= 1;
+//             DrawKeys ();
+//         }
+// #endif
 
         ingame = true;
         if(loadedgame)
@@ -1400,36 +1420,36 @@ restartgame:
 
         DrawLevel ();
 
-#ifdef SPEAR
-startplayloop:
-#endif
-        PlayLoop ();
+// #ifdef SPEAR
+// startplayloop:
+// #endif
+        PlayLoop (0);
 
-#ifdef SPEAR
-        if (spearflag)
-        {
-            SD_StopSound();
-            SD_PlaySound(GETSPEARSND);
-            if (DigiMode != sds_Off)
-            {
-                Delay(150);
-            }
-            else
-                SD_WaitSoundDone();
+// #ifdef SPEAR
+//         if (spearflag)
+//         {
+//             SD_StopSound();
+//             SD_PlaySound(GETSPEARSND);
+//             if (DigiMode != sds_Off)
+//             {
+//                 Delay(150);
+//             }
+//             else
+//                 SD_WaitSoundDone();
 
-            ClearMemory ();
-            gamestate.oldscore = gamestate.score;
-            gamestate.mapon = 20;
-            SetupGameLevel ();
-            StartMusic ();
-            player->x = spearx;
-            player->y = speary;
-            player->angle = (short)spearangle;
-            spearflag = false;
-            Thrust (0,0);
-            goto startplayloop;
-        }
-#endif
+//             ClearMemory ();
+//             gamestate.oldscore = gamestate.score;
+//             gamestate.mapon = 20;
+//             SetupGameLevel ();
+//             StartMusic ();
+//             player->x = spearx;
+//             player->y = speary;
+//             player->angle = (short)spearangle;
+//             spearflag = false;
+//             Thrust (0,0);
+//             goto startplayloop;
+//         }
+// #endif
 
         StopMusic ();
         ingame = false;
@@ -1454,41 +1474,41 @@ startplayloop:
                 LevelCompleted ();              // do the intermission
                 if(viewsize == 21) DrawPlayScreen();
 
-#ifdef SPEARDEMO
-                if (gamestate.mapon == 1)
-                {
-                    died = true;                    // don't "get psyched!"
+// #ifdef SPEARDEMO
+//                 if (gamestate.mapon == 1)
+//                 {
+//                     died = true;                    // don't "get psyched!"
 
-                    VW_FadeOut ();
+//                     VW_FadeOut ();
 
-                    ClearMemory ();
+//                     ClearMemory ();
 
-                    CheckHighScore (gamestate.score,gamestate.mapon+1);
-#ifndef JAPAN
-                    strcpy(MainMenu[viewscores].string,STR_VS);
-#endif
-                    MainMenu[viewscores].routine = CP_ViewScores;
-                    return;
-                }
-#endif
+//                     CheckHighScore (gamestate.score,gamestate.mapon+1);
+// #ifndef JAPAN
+//                     strcpy(MainMenu[viewscores].string,STR_VS);
+// #endif
+//                     MainMenu[viewscores].routine = CP_ViewScores;
+//                     return;
+//                 }
+// #endif
 
-#ifdef JAPDEMO
-                if (gamestate.mapon == 3)
-                {
-                    died = true;                    // don't "get psyched!"
+// #ifdef JAPDEMO
+//                 if (gamestate.mapon == 3)
+//                 {
+//                     died = true;                    // don't "get psyched!"
 
-                    VW_FadeOut ();
+//                     VW_FadeOut ();
 
-                    ClearMemory ();
+//                     ClearMemory ();
 
-                    CheckHighScore (gamestate.score,gamestate.mapon+1);
-#ifndef JAPAN
-                    strcpy(MainMenu[viewscores].string,STR_VS);
-#endif
-                    MainMenu[viewscores].routine = CP_ViewScores;
-                    return;
-                }
-#endif
+//                     CheckHighScore (gamestate.score,gamestate.mapon+1);
+// #ifndef JAPAN
+//                     strcpy(MainMenu[viewscores].string,STR_VS);
+// #endif
+//                     MainMenu[viewscores].routine = CP_ViewScores;
+//                     return;
+//                 }
+// #endif
 
                 gamestate.oldscore = gamestate.score;
 
@@ -1581,5 +1601,10 @@ startplayloop:
                 ClearMemory ();
                 break;
         }
+#ifndef __EMSCRIPTEN__
     } while (1);
+#else
+    emscripten_async_call((void (*)(void *))GameLoop, (void*)( 1) /* jumpto loop */, -1);
+#endif
+} // end jumpto switch
 }

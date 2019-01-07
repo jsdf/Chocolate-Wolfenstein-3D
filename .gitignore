@@ -9,3 +9,14 @@ xcuserdata
 Debug
 Release
 Backup
+
+#make output
+*.o
+*.d
+
+# game files
+*.wl1
+
+#em output
+Chocolate-Wolfenstein-3D
+Chocolate-Wolfenstein-3D.*
