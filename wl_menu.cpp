@@ -17,6 +17,10 @@
 #include "wl_def.h"
 #pragma hdrstop
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 extern int lastgamemusicoffset;
 extern int numEpisodesMissing;
 
@@ -2932,6 +2936,9 @@ CP_Quit (int)
     return 0;
 }
 
+void em_menu_noop_main_loop() {
+
+}
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -3021,6 +3028,7 @@ IntroScreen (void)
 
 //    if (SoundSourcePresent)
 //        VWB_Bar (164, 174, 12, 2, FILLCOLOR);
+       
 }
 
 

@@ -1255,7 +1255,9 @@ think:
 */
 int32_t funnyticount;
 
-
+void PlayLoop1 () {
+    PlayLoop(1);
+}
 void PlayLoop (int jumpto)
 {
 switch (jumpto) { // re-entry state machine
@@ -1343,7 +1345,7 @@ case 1:
     } while (!playstate && !startgame);
 #else
     if (!playstate && !startgame) {
-        emscripten_async_call((void (*)(void *))PlayLoop, (void*)(1) /* jumpto loop */, -1);
+        emscripten_async_call((void (*)(void *))PlayLoop1, NULL, -1);
 
         return;
     }

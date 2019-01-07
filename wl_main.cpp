@@ -14,6 +14,9 @@
 #endif
 
 
+void em_noop_main_loop() {
+
+}
 
 /*
 =============================================================================
@@ -1216,7 +1219,6 @@ static void InitGame()
     printf("end SignonScreen\n");
 
 
-
 #if defined _WIN32
     if(!fullscreen)
     {
@@ -1242,6 +1244,8 @@ static void InitGame()
     printf("SD_Startup\n");SD_Startup ();
     printf("CA_Startup\n");CA_Startup ();
     printf("US_Startup\n");US_Startup ();
+
+    
 
     printf("done starting systems\n");
 
@@ -1290,7 +1294,6 @@ static void InitGame()
 // draw intro screen stuff
 //
     IntroScreen ();
-VH_UpdateScreen();
 
 //
 // load in and lock down some basic chunks
@@ -1300,6 +1303,7 @@ VH_UpdateScreen();
     CA_CacheGrChunk(STATUSBARPIC);
 
     LoadLatchMem ();
+
     BuildTables ();          // trig tables
     SetupWalls ();
 
@@ -1490,7 +1494,6 @@ void Quit (const char *errorStr, ...)
 //===========================================================================
 
 
-
 /*
 =====================
 =
@@ -1498,6 +1501,21 @@ void Quit (const char *errorStr, ...)
 =
 =====================
 */
+
+void HighScoreScreenTest(int);
+
+void HighScoreScreenTest(int x) {
+#ifndef __EMSCRIPTEN__
+    do {
+#endif
+    DrawHighScores ();
+    VW_UpdateScreen ();
+#ifndef __EMSCRIPTEN__
+    } while (1);
+#else
+    emscripten_async_call((void (*)(void *))HighScoreScreenTest, 0, -1);
+#endif
+}
 
 static void DemoLoop()
 {
@@ -1559,10 +1577,20 @@ static void DemoLoop()
 #endif
 
 #endif
+    VW_FadeIn ();
+
+    HighScoreScreenTest(0);
+    
+#ifdef __EMSCRIPTEN__
+    printf("going to noop main loop\n");
+    printf ("from line %d of file \"%s\".\n", __LINE__, __FILE__);
+    emscripten_set_main_loop(em_noop_main_loop, 0, 1);
+#endif
+
 
     while (1)
     {
-        while (!param_nowait)
+        while (!(param_nowait || true))
         {
 //
 // title page
@@ -1944,6 +1972,6 @@ int main (int argc, char *argv[])
     printf("about to start demoloop\n");
     DemoLoop();
 
-    Quit("Demo loop exited???");
+    // Quit("Demo loop exited???");
     return 1;
 }

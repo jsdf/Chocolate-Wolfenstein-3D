@@ -1521,6 +1521,7 @@ void CalcViewVariables()
 
 void    ThreeDRefresh (void)
 {
+    printf("ThreeDRefresh\n");
 //
 // clear out the traced array
 //

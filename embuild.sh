@@ -1,6 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-IFS=$'\n\t'
 
 which emmake > /dev/null || (echo "you need to source emsdk_env.sh" && exit 1)
 
@@ -43,7 +42,7 @@ emmake make VERBOSE=1
 echo "converting bitcode with flags '$EMFLAGS'"
 
 cp ./Chocolate-Wolfenstein-3D ./Chocolate-Wolfenstein-3D.bc
-emcc $EMFLAGS ./Chocolate-Wolfenstein-3D.bc  -o ./Chocolate-Wolfenstein-3D.js \
+emcc $emflgs ./Chocolate-Wolfenstein-3D.bc  -o ./Chocolate-Wolfenstein-3D.js \
     --preload-file audiohed.wl1 \
     --preload-file audiot.wl1 \
     --preload-file gamemaps.wl1 \

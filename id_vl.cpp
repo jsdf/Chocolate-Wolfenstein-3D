@@ -4,6 +4,11 @@
 #include "wl_def.h"
 #pragma hdrstop
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+
 // Uncomment the following line, if you get destination out of bounds
 // assertion errors and want to ignore them during debugging
 //#define IGNORE_BAD_DEST
@@ -161,9 +166,49 @@ void    VL_SetVGAPlaneMode (void)
     CHECKMALLOCRESULT(pixelangle);
     wallheight = (int *) malloc(screenWidth * sizeof(int));
     CHECKMALLOCRESULT(wallheight);
-    
-    
 }
+
+
+void Em_BlitToScreen() {
+    return;
+    VL_LockSurface(screen);
+    // VL_LockSurface(screenBuffer);
+
+    assert(screen->pixels != 0);
+    assert(screen->format->BitsPerPixel == 32);
+    assert(screen->w == 320);
+    assert(screen->h == 200);
+    assert(screenBuffer->pixels != 0);
+    // assert(screenBuffer->format->BitsPerPixel == 8);
+    // assert(screenBuffer->w == 320);
+    // assert(screenBuffer->h == 200);
+
+
+    //Convert palette based framebuffer to RGB for OpenGL
+    uint32_t* pixelPointer = (uint32_t*)screen->pixels;
+    for (int i=0; i < 320*200; i++) {
+        unsigned char paletteIndex;
+        paletteIndex = ((byte*)screenBuffer->pixels)[i];
+        // if (i>0 && i<320 && i % 10 == 0) {
+        //     printf("px %d, palIDX=%d, r%d g%d b%d\n",
+        //         i,
+        //         paletteIndex,
+        //         curpal[paletteIndex].r,
+        //         curpal[paletteIndex].g,
+        //         curpal[paletteIndex].b
+
+        //     );
+        // }
+        *pixelPointer++ = curpal[paletteIndex].r;
+        *pixelPointer++ = curpal[paletteIndex].g;
+        *pixelPointer++ = curpal[paletteIndex].b;
+        *pixelPointer++ = (uint8_t)255; // alpha
+    }
+
+    VL_UnlockSurface(screen);
+    VL_UnlockSurface(screenBuffer);
+}
+
 
 /*
 =============================================================================
@@ -294,22 +339,6 @@ void VL_SetPalette (SDL_Color *palette, bool forceupdate)
     }
 }
 
-void Em_BlitToScreen() {
-    return;
-    assert(screen->format->BitsPerPixel == 32);
-    //Convert palette based framebuffer to RGB for OpenGL
-    uint32_t* pixelPointer = (uint32_t*)screen->pixels;
-    for (int i=0; i < 320*200; i++) {
-        unsigned char paletteIndex;
-        paletteIndex = ((byte*)screenBuffer->pixels)[i];
-        *pixelPointer++ = curpal[paletteIndex].r;
-        *pixelPointer++ = curpal[paletteIndex].g;
-        *pixelPointer++ = curpal[paletteIndex].b;
-        *pixelPointer++ = (uint8_t)255; // alpha
-    }
-}
-
-
 //===========================================================================
 
 /*
@@ -438,7 +467,7 @@ void VL_FadeIn (int start, int end, SDL_Color *palette, int steps)
 
 byte *VL_LockSurface(SDL_Surface *surface)
 {
-    if(SDL_MUSTLOCK(surface))
+    if(/*surface == screen &&*/ SDL_MUSTLOCK(surface))
     {
         if(SDL_LockSurface(surface) < 0)
             return NULL;
@@ -448,7 +477,7 @@ byte *VL_LockSurface(SDL_Surface *surface)
 
 void VL_UnlockSurface(SDL_Surface *surface)
 {
-    if(SDL_MUSTLOCK(surface))
+    if(/*surface == screen &&*/ SDL_MUSTLOCK(surface))
     {
         SDL_UnlockSurface(surface);
     }

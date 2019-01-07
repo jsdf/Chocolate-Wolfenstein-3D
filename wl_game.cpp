@@ -1365,6 +1365,11 @@ void Died (void)
 ===================
 */
 boolean died = false;
+void GameLoop1 ()
+{
+    GameLoop(1);
+}
+
 void GameLoop (int jumpto)
 {
     assert(jumpto >= 0 && jumpto <= 1);
@@ -1604,7 +1609,7 @@ case 1:
 #ifndef __EMSCRIPTEN__
     } while (1);
 #else
-    emscripten_async_call((void (*)(void *))GameLoop, (void*)( 1) /* jumpto loop */, -1);
+    emscripten_async_call((void (*)(void *))GameLoop1, NULL, -1);
 #endif
 } // end jumpto switch
 }
