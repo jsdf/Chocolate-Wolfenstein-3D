@@ -231,6 +231,8 @@ noconfig:
         mouseadjustment=5;
     }
 
+    printf("init sound sm=%d sd=%d sds=%d\n", sm,sd,sds);
+
     SD_SetMusicMode (sm);
     SD_SetSoundMode (sd);
     SD_SetDigiDevice (sds);
@@ -1014,12 +1016,22 @@ void InitDigiMap (void)
 {
     int *map;
 
+    int i = 0;
+
     for (map = wolfdigimap; *map != LASTSOUND; map += 3)
     {
+        printf("prepare sound i=%d sound=%d digi=%d\n", i, map[0], map[1]);
         DigiMap[map[0]] = map[1];
         DigiChannel[map[1]] = map[2];
         SD_PrepareSound(map[1]);
+        i++;
     }
+    // printf("prepared DigiMap\n");
+    // i=0;
+    // while(i < LASTSOUND) {
+    //     printf("DigiMap[%d]=%d\n", i, DigiMap[i]);
+    //     i++;
+    // }
 }
 
 #ifndef SPEAR
@@ -1276,6 +1288,7 @@ static void InitGame()
 
     ReadConfig ();
 
+
     SetupSaveGames();
 
 //
@@ -1316,7 +1329,9 @@ static void InitGame()
 #ifndef SPEARDEMO
     if(!didjukebox)
 #endif
+
         FinishSignon();
+
 
 #ifdef NOTYET
     vdisp = (byte *) (0xa0000+PAGE1START);
@@ -1508,6 +1523,12 @@ void HighScoreScreenTest(int x) {
 #ifndef __EMSCRIPTEN__
     do {
 #endif
+
+    #ifdef __EMSCRIPTEN__
+    EM_ASM(
+        debugger;
+    );
+    #endif
     DrawHighScores ();
     VW_UpdateScreen ();
 #ifndef __EMSCRIPTEN__
@@ -1516,6 +1537,8 @@ void HighScoreScreenTest(int x) {
     emscripten_async_call((void (*)(void *))HighScoreScreenTest, 0, -1);
 #endif
 }
+
+void ControlPanelLoop(int);
 
 static void DemoLoop()
 {
@@ -1577,19 +1600,17 @@ static void DemoLoop()
 #endif
 
 #endif
-    VW_FadeIn ();
+    // VW_FadeIn ();
 
-    HighScoreScreenTest(0);
-    
-#ifdef __EMSCRIPTEN__
-    printf("going to noop main loop\n");
-    printf ("from line %d of file \"%s\".\n", __LINE__, __FILE__);
-    emscripten_set_main_loop(em_noop_main_loop, 0, 1);
-#endif
+    // printf("HighScoreScreenTest\n");
+    // HighScoreScreenTest(0);
 
 
+
+#ifndef __EMSCRIPTEN__
     while (1)
     {
+#endif
         while (!(param_nowait || true))
         {
 //
@@ -1660,6 +1681,13 @@ static void DemoLoop()
 
         VW_FadeOut ();
 
+#ifdef __EMSCRIPTEN__
+        ControlPanelLoop(0);
+        printf("going to noop main loop\n");
+        printf ("from line %d of file \"%s\".\n", __LINE__, __FILE__);
+        emscripten_set_main_loop(em_noop_main_loop, 0, 1);
+#endif
+
 #ifdef DEBUGKEYS
         if (Keyboard[sc_Tab] && param_debugmode)
             RecordDemo ();
@@ -1678,7 +1706,26 @@ static void DemoLoop()
                 StartCPMusic(INTROSONG);
             }
         }
+#ifndef __EMSCRIPTEN__
     }
+#endif
+}
+
+void ControlPanelLoop(int jumpto) {
+
+        // TODO(jsdf)
+        // US_ControlPanel (0);
+        startgame = true;
+        if (startgame || loadedgame)
+        {
+            NewGame(3, 0);
+            GameLoop (0);
+            return;
+        }
+
+    #ifdef __EMSCRIPTEN__
+        emscripten_async_call((void (*)(void *))ControlPanelLoop, 0, -1);
+    #endif
 }
 
 

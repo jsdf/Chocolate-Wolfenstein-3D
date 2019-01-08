@@ -97,7 +97,7 @@ void    VL_SetVGAPlaneMode (void)
     screenWidth=320;
     screenHeight=200;
     #ifdef __EMSCRIPTEN__
-    screenBits=32; // browser canvas is always 32bpp
+    screenBits=-1; // browser canvas is always 32bpp
     #endif
 
     if(screenBits == -1)
@@ -131,15 +131,15 @@ void    VL_SetVGAPlaneMode (void)
         usedoublebuffering = false;
     SDL_ShowCursor(SDL_DISABLE);
 
-    SDL_SetColors(screen, gamepal, 0, 256);
+    // SDL_SetColors(screen, gamepal, 0, 256);
     memcpy(curpal, gamepal, sizeof(SDL_Color) * 256);
 
     //Fab's CRT Hack
     // CRT_Init(screenWidth);
     
     //Fab's CRT Hack
-    screenWidth=320;
-    screenHeight=200;
+    // screenWidth=320;
+    // screenHeight=200;
     
     printf("screenWidth=%d,screenHeight=%d\n", screenWidth,screenHeight);
     
@@ -168,11 +168,11 @@ void    VL_SetVGAPlaneMode (void)
     CHECKMALLOCRESULT(wallheight);
 }
 
+int frames_to_dump = 0;
 
 void Em_BlitToScreen() {
-    return;
     VL_LockSurface(screen);
-    // VL_LockSurface(screenBuffer);
+    VL_LockSurface(screenBuffer);
 
     assert(screen->pixels != 0);
     assert(screen->format->BitsPerPixel == 32);
@@ -183,27 +183,42 @@ void Em_BlitToScreen() {
     // assert(screenBuffer->w == 320);
     // assert(screenBuffer->h == 200);
 
-
-    //Convert palette based framebuffer to RGB for OpenGL
-    uint32_t* pixelPointer = (uint32_t*)screen->pixels;
-    for (int i=0; i < 320*200; i++) {
-        unsigned char paletteIndex;
-        paletteIndex = ((byte*)screenBuffer->pixels)[i];
-        // if (i>0 && i<320 && i % 10 == 0) {
-        //     printf("px %d, palIDX=%d, r%d g%d b%d\n",
-        //         i,
-        //         paletteIndex,
-        //         curpal[paletteIndex].r,
-        //         curpal[paletteIndex].g,
-        //         curpal[paletteIndex].b
-
-        //     );
-        // }
-        *pixelPointer++ = curpal[paletteIndex].r;
-        *pixelPointer++ = curpal[paletteIndex].g;
-        *pixelPointer++ = curpal[paletteIndex].b;
-        *pixelPointer++ = (uint8_t)255; // alpha
+    int colorstats[256]; 
+    for (int i = 0; i < 256; i++ ) {
+        colorstats[i] = 0;
     }
+    //Convert palette based framebuffer to RGB
+    uint32_t* pixelPointer = (uint32_t*)screen->pixels;
+    for (int y=0; y < screenBuffer->h; y++) {
+        for (int x=0; x < screenBuffer->w; x++) {
+            int i = y * screenBuffer->pitch + x;
+
+            unsigned char paletteIndex = ((byte*)screenBuffer->pixels)[i];
+            colorstats[paletteIndex]++;
+            *pixelPointer++ = SDL_MapRGBA(
+                screen->format,
+                curpal[paletteIndex].r,
+                curpal[paletteIndex].g,
+                curpal[paletteIndex].b,
+                255
+            );
+        }
+    }
+    frames_to_dump++;
+    if (frames_to_dump % 60 == 0) {
+        // printf("frame %d blit\n", frames_to_dump);
+        // for (int i = 0; i < 256; i++ ) {
+        //     if(colorstats[i]) {
+        //         printf("pixelstats[%d]=%d\n", i, colorstats[i]);
+        //     }
+        // }
+        // printf("palette ");
+        // for (int i = 0; i < 256; i++ ) {
+        //     printf("%d: [%d,%d,%d], ", i, curpal[i].r,curpal[i].g,curpal[i].b);
+        // }
+        // printf("\n");
+    }
+
 
     VL_UnlockSurface(screen);
     VL_UnlockSurface(screenBuffer);

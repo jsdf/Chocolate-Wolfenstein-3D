@@ -15,6 +15,8 @@
 #include <emscripten.h>
 #endif
 
+#include "web.h"
+
 #pragma hdrstop
 
 #ifdef MYPROFILE
@@ -1365,13 +1367,20 @@ void Died (void)
 ===================
 */
 boolean died = false;
-void GameLoop1 ()
+void GameLoop1 (int)
 {
     GameLoop(1);
 }
 
+void GameLoop2 (int)
+{
+    GameLoop(2);
+}
+
+int gameloopiters = 0;
 void GameLoop (int jumpto)
 {
+    printf("GameLoop %d\n", gameloopiters++);
     assert(jumpto >= 0 && jumpto <= 1);
 // #ifdef MYPROFILE
 //     clock_t start,end;
@@ -1381,6 +1390,7 @@ switch (jumpto) { // re-entry state machine
 case 0:
 restartgame:
     ClearMemory ();
+
     SETFONTCOLOR(0,15);
     VW_FadeOut();
     DrawPlayScreen ();
@@ -1428,7 +1438,15 @@ case 1:
 // #ifdef SPEAR
 // startplayloop:
 // #endif
+
+        #ifdef __EMSCRIPTEN__
+        em_continuation_push(GameLoop2/* return here */);
         PlayLoop (0);
+        return;
+        #else
+        PlayLoop (0);
+        #endif
+case 2:
 
 // #ifdef SPEAR
 //         if (spearflag)
@@ -1609,7 +1627,7 @@ case 1:
 #ifndef __EMSCRIPTEN__
     } while (1);
 #else
-    emscripten_async_call((void (*)(void *))GameLoop1, NULL, -1);
+    emscripten_async_call((void (*)(void *))GameLoop1, (void *)1, -1);
 #endif
 } // end jumpto switch
 }

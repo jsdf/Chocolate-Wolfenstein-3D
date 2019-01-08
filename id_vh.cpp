@@ -116,7 +116,6 @@ void VW_MeasurePropString (const char *string, word *width, word *height)
 
 void VH_UpdateScreen()
 {
-    printf("updating screen\n");
 #ifdef __EMSCRIPTEN__
     Em_BlitToScreen();
 #else

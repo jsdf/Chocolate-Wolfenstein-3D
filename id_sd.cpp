@@ -478,6 +478,7 @@ SDL_ShutPC(void)
 void
 SD_StopDigitized(void)
 {
+
     DigiPlaying = false;
     DigiNumber = (soundnames) 0;
     DigiPriority = 0;
@@ -492,9 +493,11 @@ SD_StopDigitized(void)
             break;
         case sds_SoundBlaster:
 //            SDL_SBStopSampleInIRQ();
-            Mix_HaltChannel(-1);
+           // jsdf: disabled this because it caused mem corruption ???
+            // Mix_HaltChannel(-1);
             break;
     }
+
 }
 
 int SD_GetChannelForDigi(int which)
@@ -1152,6 +1155,7 @@ SD_PlaySound(soundnames sound)
 
     ispos = nextsoundpos;
     nextsoundpos = false;
+    printf("%s:%d\n", __func__, __LINE__);
 
     if (sound == -1 || (DigiMode == sds_Off && SoundMode == sdm_Off))
         return 0;
@@ -1186,6 +1190,13 @@ SD_PlaySound(soundnames sound)
                 return(false);
 #endif
 
+            int digimapindex = 0;
+            // while(digimapindex < LASTSOUND) {
+            //     printf("DigiMap[%d]=%d\n", digimapindex, DigiMap[digimapindex]);
+            //     digimapindex++;
+            // }
+
+            // printf("SD_PlaySound sound=%d digi=%d\n", sound, DigiMap[sound]);
             int channel = SD_PlayDigitized(DigiMap[sound], lp, rp);
             SoundPositioned = ispos;
             DigiNumber = sound;

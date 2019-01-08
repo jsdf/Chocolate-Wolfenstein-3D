@@ -8,6 +8,8 @@
 #include <emscripten.h>
 #endif
 
+#include "web.h"
+
 /*
 =============================================================================
 
@@ -1255,7 +1257,7 @@ think:
 */
 int32_t funnyticount;
 
-void PlayLoop1 () {
+void PlayLoop1 (int) {
     PlayLoop(1);
 }
 void PlayLoop (int jumpto)
@@ -1345,7 +1347,7 @@ case 1:
     } while (!playstate && !startgame);
 #else
     if (!playstate && !startgame) {
-        emscripten_async_call((void (*)(void *))PlayLoop1, NULL, -1);
+        emscripten_async_call((void (*)(void *))PlayLoop1, (void *)1, -1);
 
         return;
     }
@@ -1354,4 +1356,8 @@ case 1:
     if (playstate != ex_died)
         FinishPaletteShifts ();
 } // end jumpto switch
+
+#ifdef __EMSCRIPTEN__
+em_continuation_return();
+#endif
 }
