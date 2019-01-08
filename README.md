@@ -1,6 +1,12 @@
 Chocolate-Wolfenstein-3D
 ========================
 
+This version is hacked to compile for the browser using Emscripten
+
+
+
+--- Original Readme ---
+
 Based on Wolf4SDL by Moritz "Ripper" Kroll (http://www.chaos-software.de.vu).
 
 Original Wolfenstein 3D by id Software (http://www.idsoftware.com)
