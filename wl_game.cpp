@@ -1320,7 +1320,9 @@ void Died (void)
     FizzleFade(screenBuffer,viewscreenx,viewscreeny,viewwidth,viewheight,70,false);
 
     IN_UserInput(100);
+    #ifndef __EMSCRIPTEN__
     SD_WaitSoundDone ();
+    #endif
     ClearMemory();
 
     gamestate.lives--;

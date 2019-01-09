@@ -535,7 +535,12 @@ boolean IN_CheckAck (void)
                 // Wait until button has been released
                 do
                 {
+                    #ifdef __EMSCRIPTEN__
+                    // otherwise infinite loop happens here
+                    IN_ProcessEvents();
+                    #else
                     IN_WaitAndProcessEvents();
+                    #endif
                     buttons = IN_JoyButtons() << 4;
 
                     if(MousePresent)
@@ -579,7 +584,9 @@ void IN_Ack (void)
 boolean IN_UserInput(longword delay)
 {
     longword    lasttime;
+    #ifdef EM_COROUTINES
     return(false);
+    #endif
 
 
     lasttime = GetTimeCount();
@@ -589,7 +596,11 @@ boolean IN_UserInput(longword delay)
         IN_ProcessEvents();
         if (IN_CheckAck())
             return true;
+        #ifdef __EMSCRIPTEN__
+        SDL_Delay(100);
+        #else
         SDL_Delay(5);
+        #endif
     } while (GetTimeCount() - lasttime < delay);
     return(false);
 }

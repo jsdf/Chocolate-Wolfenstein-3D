@@ -6,7 +6,9 @@ LibrarySDL = {
   Mix_GroupOldest: function() {},
   Mix_HookMusic: function() {},
   SDL_EventState: function() {},
-  SDL_WaitEvent: function() {},
+  SDL_WaitEvent: function() {
+    return 0;
+  },
   // SDL_Delay: function() {
 
   //   // SDL_Delay

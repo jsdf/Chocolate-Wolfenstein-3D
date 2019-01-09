@@ -974,7 +974,6 @@ int samplesPerMusicTick;
 
 void SDL_IMFMusicPlayer(void *udata, Uint8 *stream, int len)
 {
-    printf("SDL_IMFMusicPlayer\n");
     int stereolen = len>>1;
     int sampleslen = stereolen>>1;
     INT16 *stream16 = (INT16 *) (void *) stream;    // expect correct alignment
@@ -1268,6 +1267,12 @@ SD_SoundPlaying(void)
 {
     boolean result = false;
 
+    #ifdef __EMSCRIPTEN__
+    // this doesn't seem to work in the brower, prob because we are missing an 
+    // alternative to Mix_ChannelFinished
+    return false;
+    #endif
+
     switch (SoundMode)
     {
         case sdm_PC:
@@ -1318,8 +1323,10 @@ SD_StopSound(void)
 void
 SD_WaitSoundDone(void)
 {
+#ifndef __EMSCRIPTEN__
     while (SD_SoundPlaying())
         SDL_Delay(5);
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////

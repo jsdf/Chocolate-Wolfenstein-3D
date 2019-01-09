@@ -3,7 +3,10 @@ set -euo pipefail
 
 which emmake > /dev/null || (echo "you need to source emsdk_env.sh" && exit 1)
 
-use_wasm=""
+emenv_emterpreter="y"
+emenv_debug=""
+emenv_release="y"
+use_wasm="y"
 emflgs=""
 emflgs+=" -s TOTAL_MEMORY=268435456"
 emflgs+=" -s FORCE_FILESYSTEM=1"
@@ -17,31 +20,38 @@ emflgs+=" -s BINARYEN_METHOD='native-wasm'"
 fi
 
 
-emenv_debug=""
-emenv_release="y"
-if [ -n "$emenv_release" ]; then
+if [ -n "$emenv_emterpreter" ]; then
   emflgs+=" -O3"
-else
-  if [ -z "$emenv_debug" ]; then
-  emflgs+=" -O3 -g4"
-  else
-  emflgs+=" -O0 -g4"
+  emflgs+=" -s EMTERPRETIFY=1"
+  emflgs+=" -s EMTERPRETIFY_ASYNC=1"
+  emflgs+=" -s EMTERPRETIFY_WHITELIST=$(node ./whitelist-funcs.js)"
 
-  # emflgs+=" -s UNALIGNED_MEMORY=1 " # not supported in fastcomp
-  # emflgs+=" -s SAFE_HEAP=1 " # for memory corruption debugging, v slow
-  # emflgs+=" -s SAFE_HEAP_LOG=1 " # see above
-  emflgs+=" -s ASSERTIONS=2 " 
-  emflgs+=" -s DEMANGLE_SUPPORT=1"
+  if [ -z "$emenv_release" ]; then
+    # for finding functions to whitelist
+    emflgs+=" -s ASSERTIONS=1 --profiling-funcs"
+  fi
+else
+  if [ -n "$emenv_release" ]; then
+    emflgs+=" -O3"
+  else
+    if [ -n "$emenv_debug" ]; then
+      emflgs+=" -O0 -g4"
+
+      # emflgs+=" -s UNALIGNED_MEMORY=1 " # not supported in fastcomp
+      # emflgs+=" -s SAFE_HEAP=1 " # for memory corruption debugging, v slow
+      # emflgs+=" -s SAFE_HEAP_LOG=1 " # see above
+      emflgs+=" -s ASSERTIONS=2 " 
+      emflgs+=" -s DEMANGLE_SUPPORT=1"
+    else
+      # default dev build: opt but with symbols
+      emflgs+=" -O3 -g4"
+    fi
   fi
 fi
 
 # emflgs+=" -s ERROR_ON_UNDEFINED_SYMBOLS=0"
 emflgs+=" --js-library library_sdl.js"
 
-emflgs+=" -s EMTERPRETIFY=1"
-emflgs+=" -s EMTERPRETIFY_ASYNC=1"
-emflgs+=" -s EMTERPRETIFY_WHITELIST=$(node ./whitelist-funcs.js)"
-emflgs+=" -s ASSERTIONS=1 --profiling-funcs"
 
 export EMFLAGS=$emflgs
 

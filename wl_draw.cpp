@@ -1564,7 +1564,9 @@ void    ThreeDRefresh (void)
 
     if (fizzlein)
     {
+        #ifndef __EMSCRIPTEN__
         FizzleFade(screenBuffer, 0, 0, screenWidth, screenHeight, 20, false);
+        #endif
         fizzlein = false;
 
         lasttimecount = GetTimeCount();          // don't make a big tic count

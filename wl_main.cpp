@@ -1593,11 +1593,6 @@ static void DemoLoop()
 #endif
 
 #endif
-    // VW_FadeIn ();
-
-    // printf("HighScoreScreenTest\n");
-    // HighScoreScreenTest(0);
-
 
 
 #ifndef EM_COROUTINES
