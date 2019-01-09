@@ -37,6 +37,10 @@
 #endif
 #include "fmopl.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #pragma hdrstop
 
 #define ORIGSAMPLERATE 7042
@@ -970,6 +974,7 @@ int samplesPerMusicTick;
 
 void SDL_IMFMusicPlayer(void *udata, Uint8 *stream, int len)
 {
+    printf("SDL_IMFMusicPlayer\n");
     int stereolen = len>>1;
     int sampleslen = stereolen>>1;
     INT16 *stream16 = (INT16 *) (void *) stream;    // expect correct alignment
@@ -1057,7 +1062,7 @@ SD_Startup(void)
     if (SD_Started)
         return;
 
-
+    printf("SD_Startup\n");
     SDL_AudioSpec *desired, *obtained;
     SDL_AudioSpec *hardware_spec;
     desired = (SDL_AudioSpec*)malloc(sizeof(SDL_AudioSpec));

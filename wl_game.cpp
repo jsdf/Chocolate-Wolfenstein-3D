@@ -1380,7 +1380,7 @@ void GameLoop2 (int)
 int gameloopiters = 0;
 void GameLoop (int jumpto)
 {
-    printf("GameLoop %d\n", gameloopiters++);
+    printf("GameLoop %d jumpto=%d\n", gameloopiters++, jumpto);
     assert(jumpto >= 0 && jumpto <= 1);
 // #ifdef MYPROFILE
 //     clock_t start,end;
@@ -1397,7 +1397,7 @@ restartgame:
     died = false;
 
 case 1:
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     do
     {
 #endif
@@ -1418,6 +1418,7 @@ case 1:
 // #endif
 
         ingame = true;
+        printf("about to start music\n");
         if(loadedgame)
         {
             ContinueMusic(lastgamemusicoffset);
@@ -1439,7 +1440,8 @@ case 1:
 // startplayloop:
 // #endif
 
-        #ifdef __EMSCRIPTEN__
+        VW_FadeIn();
+        #ifdef EM_COROUTINES
         em_continuation_push(GameLoop2/* return here */);
         PlayLoop (0);
         return;
@@ -1624,7 +1626,7 @@ case 2:
                 ClearMemory ();
                 break;
         }
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     } while (1);
 #else
     emscripten_async_call((void (*)(void *))GameLoop1, (void *)1, -1);

@@ -38,6 +38,11 @@ fi
 # emflgs+=" -s ERROR_ON_UNDEFINED_SYMBOLS=0"
 emflgs+=" --js-library library_sdl.js"
 
+emflgs+=" -s EMTERPRETIFY=1"
+emflgs+=" -s EMTERPRETIFY_ASYNC=1"
+emflgs+=" -s EMTERPRETIFY_WHITELIST=$(node ./whitelist-funcs.js)"
+emflgs+=" -s ASSERTIONS=1 --profiling-funcs"
+
 export EMFLAGS=$emflgs
 
 echo "emmake"

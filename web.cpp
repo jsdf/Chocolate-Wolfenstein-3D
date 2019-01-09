@@ -10,7 +10,7 @@ continuation_ptr_t em_continuation_stack[100];
 int em_continuation_stack_top = 0;
 
 void em_continuation_push(continuation_ptr_t returnto) {
-  #ifdef __EMSCRIPTEN__
+  #ifdef EM_COROUTINES
   assert(returnto != NULL);
   em_continuation_stack[em_continuation_stack_top] = returnto;
   em_continuation_stack_top++;
@@ -18,7 +18,7 @@ void em_continuation_push(continuation_ptr_t returnto) {
 }
 
 void em_continuation_return() {
-  #ifdef __EMSCRIPTEN__
+  #ifdef EM_COROUTINES
   continuation_ptr_t returnto = em_continuation_stack[em_continuation_stack_top];
   assert(em_continuation_stack_top>0);
   assert(returnto != NULL);

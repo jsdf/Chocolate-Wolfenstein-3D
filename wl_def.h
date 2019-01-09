@@ -1385,5 +1385,7 @@ static inline longword READLONGWORD(byte *&ptr)
     return val;
 }
 
+// #define EM_COROUTINES 1
+
 #endif
 

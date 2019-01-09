@@ -7,10 +7,10 @@ LibrarySDL = {
   Mix_HookMusic: function() {},
   SDL_EventState: function() {},
   SDL_WaitEvent: function() {},
-  SDL_Delay: function() {
+  // SDL_Delay: function() {
 
-    // SDL_Delay
-  }
+  //   // SDL_Delay
+  // }
 };
 
 mergeInto(LibraryManager.library, LibrarySDL);

@@ -1280,7 +1280,7 @@ case 0:
         IN_StartAck ();
 
 case 1:
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     do
     {
 #endif
@@ -1342,8 +1342,11 @@ case 1:
                 playstate = ex_abort;
             }
         }
-    
-#ifndef __EMSCRIPTEN__
+
+#ifndef EM_COROUTINES
+    #ifdef __EMSCRIPTEN__
+        emscripten_sleep_with_yield(1);
+    #endif
     } while (!playstate && !startgame);
 #else
     if (!playstate && !startgame) {
@@ -1357,7 +1360,7 @@ case 1:
         FinishPaletteShifts ();
 } // end jumpto switch
 
-#ifdef __EMSCRIPTEN__
+#ifdef EM_COROUTINES
 em_continuation_return();
 #endif
 }

@@ -1520,18 +1520,12 @@ void Quit (const char *errorStr, ...)
 void HighScoreScreenTest(int);
 
 void HighScoreScreenTest(int x) {
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     do {
 #endif
-
-    #ifdef __EMSCRIPTEN__
-    EM_ASM(
-        debugger;
-    );
-    #endif
     DrawHighScores ();
     VW_UpdateScreen ();
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     } while (1);
 #else
     emscripten_async_call((void (*)(void *))HighScoreScreenTest, 0, -1);
@@ -1560,7 +1554,6 @@ static void DemoLoop()
         gamestate.episode = 0;
         gamestate.mapon = param_tedlevel;
 #endif
-        printf("before GameLoop\n");
         GameLoop(0);
         Quit (NULL);
     }
@@ -1607,11 +1600,14 @@ static void DemoLoop()
 
 
 
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     while (1)
     {
 #endif
-        while (!(param_nowait || true))
+        while (!(
+            param_nowait
+            //|| true
+        ))
         {
 //
 // title page
@@ -1681,7 +1677,7 @@ static void DemoLoop()
 
         VW_FadeOut ();
 
-#ifdef __EMSCRIPTEN__
+#ifdef EM_COROUTINES
         ControlPanelLoop(0);
         printf("going to noop main loop\n");
         printf ("from line %d of file \"%s\".\n", __LINE__, __FILE__);
@@ -1706,7 +1702,7 @@ static void DemoLoop()
                 StartCPMusic(INTROSONG);
             }
         }
-#ifndef __EMSCRIPTEN__
+#ifndef EM_COROUTINES
     }
 #endif
 }
@@ -1718,12 +1714,12 @@ void ControlPanelLoop(int jumpto) {
         startgame = true;
         if (startgame || loadedgame)
         {
-            NewGame(3, 0);
+            NewGame(2, 0);
             GameLoop (0);
             return;
         }
 
-    #ifdef __EMSCRIPTEN__
+    #ifdef EM_COROUTINES
         emscripten_async_call((void (*)(void *))ControlPanelLoop, 0, -1);
     #endif
 }
