@@ -1057,14 +1057,35 @@ SD_Startup(void)
     if (SD_Started)
         return;
 
-    if(Mix_OpenAudio(param_samplerate, AUDIO_S16, 2, param_audiobuffer))
-    {
-        printf("Unable to open audio: %s\n", Mix_GetError());
-        return;
-    }
 
-    Mix_ReserveChannels(2);  // reserve player and boss weapon channels
-    Mix_GroupChannels(2, MIX_CHANNELS-1, 1); // group remaining channels
+    SDL_AudioSpec *desired, *obtained;
+    SDL_AudioSpec *hardware_spec;
+    desired = (SDL_AudioSpec*)malloc(sizeof(SDL_AudioSpec));
+    obtained = (SDL_AudioSpec*)malloc(sizeof(SDL_AudioSpec));
+
+    desired->freq=param_samplerate;
+    desired->format=AUDIO_S16LSB;
+    desired->channels=2;
+    desired->samples=param_audiobuffer;
+    desired->callback=SDL_IMFMusicPlayer;
+    if ( SDL_OpenAudio(desired, obtained) < 0 ){
+      fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+      exit(-1);
+    }
+    free(desired);
+    printf("started SDL audio ch=%d samp=%d\n", obtained->channels, obtained->samples);
+    SDL_PauseAudio(0);
+
+
+
+    // if(Mix_OpenAudio(param_samplerate, AUDIO_S16, 2, param_audiobuffer))
+    // {
+    //     printf("Unable to open audio: %s\n", Mix_GetError());
+    //     return;
+    // }
+
+    // Mix_ReserveChannels(2);  // reserve player and boss weapon channels
+    // Mix_GroupChannels(2, MIX_CHANNELS-1, 1); // group remaining channels
 
     // Init music
 
@@ -1081,8 +1102,8 @@ SD_Startup(void)
     YM3812Write(0,1,0x20); // Set WSE=1
 //    YM3812Write(0,8,0); // Set CSM=0 & SEL=0       // already set in for statement
 
-    Mix_HookMusic(SDL_IMFMusicPlayer, 0);
-    Mix_ChannelFinished(SD_ChannelFinished);
+    // Mix_HookMusic(SDL_IMFMusicPlayer, 0);
+    // Mix_ChannelFinished(SD_ChannelFinished);
     AdLibPresent = true;
     SoundBlasterPresent = true;
 
@@ -1155,7 +1176,7 @@ SD_PlaySound(soundnames sound)
 
     ispos = nextsoundpos;
     nextsoundpos = false;
-    printf("%s:%d\n", __func__, __LINE__);
+    // printf("%s:%d\n", __func__, __LINE__);
 
     if (sound == -1 || (DigiMode == sds_Off && SoundMode == sdm_Off))
         return 0;
@@ -1340,9 +1361,11 @@ void
 SD_StartMusic(int chunk)
 {
     SD_MusicOff();
+    printf("SD_StartMusic\n");
 
     if (MusicMode == smm_AdLib)
     {
+        printf("MusicMode == smm_AdLib\n");
         int32_t chunkLen = CA_CacheAudioChunk(chunk);
         sqHack = (word *)(void *) audiosegs[chunk];     // alignment is correct
         if(*sqHack == 0) sqHackLen = sqHackSeqLen = chunkLen;

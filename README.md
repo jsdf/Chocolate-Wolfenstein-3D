@@ -1,8 +1,15 @@
 Chocolate-Wolfenstein-3D
 ========================
 
-This version is hacked to compile for the browser using Emscripten
+This version is hacked to compile for the browser using Emscripten.
 
+To compile, install, activate and source the Emscripten SDK, then run:
+```sh
+./embuild.sh
+http-server .
+```
+
+and then in your browser open Chocolate-Wolfenstein-3D.html
 
 
 --- Original Readme ---
